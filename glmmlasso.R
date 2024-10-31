@@ -1,4 +1,3 @@
-# Oct 27, Maysa Niazy
 # Practical implementation for Guidelines paper
 #using COVID-19 data found in:https://doi.org/10.7910/DVN/TAS2PH 
 
@@ -11,12 +10,9 @@ library(car)
 library(corrplot)   # For correlation matrix plot
 library(ggplot2)    # For data visualization
 library(DataExplorer) # To generate automated EDA reports
-setwd("/Users/mniazy/Downloads")
 # Load the data:
-data <- readxl::read_excel("Immunologic profiles in patients with COVID-19.xlsx")
-data <- as.data.frame(data)
+data <- readxl::read_excel("Immunologic profiles in patients with COVID-19.xlsx"
 
-#
 #Step 1: Goal: Prediction model
 # Step 2: Data preperation 
 # 1) Basic Data Overview
@@ -89,8 +85,6 @@ data <- data %>%
 
 # Final check before model fitting
 summary(covid_data_scaled)
-# Automated EDA Report
-#create_report(data)
 # Step 3: Variable Selection:
 # Filtering selection based on correlations
 # Check Multicollinearity
@@ -99,10 +93,8 @@ vif_model <- lm(BTLA ~ ., data = data)  # Example linear model for VIF calculati
 vif(vif_model)
 
 # Step 4: Model assumptions
-###################################
 # prediction model:
 set.seed(129)  # Set seed for reproducibility
-
 # Split the data into training (80%) and test (20%) sets
 trainIndex <- createDataPartition(data$Death, p = .8, 
                                   list = FALSE, 
@@ -111,11 +103,9 @@ trainData <- data[trainIndex, ]
 testData  <- data[-trainIndex, ]
 
 #  1) choose the best lambda:
-# Manual k-fold cross-validation using the glmmLasso function is used to find the optimal lambda value, taking into account fixed and random effects.
+# Manual k-fold cross-validation was performed using the glmmLasso function to find the optimal lambda value, taking into account fixed and random effects.
 # since glmmLasso package lacks built-in cross-validation capabilities
 # conventional cross-validation methods in glmnet caret packages unsuitable (doesnt account for random effects).
-
-
 # Set up the k-fold cross-validation
 k <- 10  # Number of folds
 set.seed(123)  # For reproducibility
@@ -170,7 +160,7 @@ for (i in 1:length(lambda_values)) {
 # Find the lambda value that minimizes cross-validation error
 best_lambda <- lambda_values[which.min(cv_errors)]
 cat("Best lambda value:", best_lambda)
-# or using lambda value within 1 SD of the mean
+# Also using lambda value within 1 SD of the mean
 # Calculate the mean and standard deviation of cv_errors
 mean_cv_error <- mean(cv_errors)
 sd_cv_error <- sd(cv_errors)
@@ -182,7 +172,6 @@ acceptable_lambda_indices <- which(cv_errors <= (mean_cv_error + sd_cv_error))
 best_lambda_within_sd <- lambda_values[acceptable_lambda_indices][which.min(cv_errors[acceptable_lambda_indices])]
 
 cat("Best lambda value:", best_lambda_within_sd)
-
 
 # Step 2: Fit the GLMM with Lasso (glmmLasso) on the training data
 lambda_value <- best_lambda  #0.101 # # using the estimated lambda value 
@@ -226,7 +215,7 @@ auc(roc_curve)
 # 3) Create ROC curve object
 roc_curve <- roc(testData$Death, testPredictions)
 
-# Plot the smoothed ROC curve
+# Plot smoothed ROC curve
 plot(smooth(roc_curve),  # This will smooth the curve
      col = "blue",        # Color of the curve
      main = "ROC Curve for GLMM with Lasso",
